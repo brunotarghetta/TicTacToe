@@ -3,46 +3,14 @@ import GameScreenComponent from "./components/GameScreenComponent";
 import LandingComponent from "./components/LandingComponent";
 import MultiplayerSetupComponent from "./components/MultiplayerSetupComponent";
 import SummaryComponent from "./components/SummaryComponent";
-
-const winningLines = [
-  [0, 1, 2],
-  [3, 4, 5],
-  [6, 7, 8],
-  [0, 3, 6],
-  [1, 4, 7],
-  [2, 5, 8],
-  [0, 4, 8],
-  [2, 4, 6],
-];
-
-function calculateWinner(squares) {
-  for (const [a, b, c] of winningLines) {
-    if (squares[a] && squares[a] === squares[b] && squares[a] === squares[c]) {
-      return {
-        winner: squares[a],
-        line: [a, b, c],
-      };
-    }
-  }
-
-  return null;
-}
-
-const emptyBoard = Array(9).fill(null);
-
-function createPlayers(mode, providedNames = {}) {
-  if (mode === "quick") {
-    return {
-      X: "Jugador 1",
-      O: "Jugador 2",
-    };
-  }
-
-  return {
-    X: providedNames.playerOne?.trim() || "Jugador 1",
-    O: providedNames.playerTwo?.trim() || "Jugador 2",
-  };
-}
+import {
+  calculateWinner,
+  createPlayers,
+  emptyBoard,
+  getNextStartingSymbol,
+  getUpdatedHistory,
+  getUpdatedScore,
+} from "./gameUtils";
 
 export default function App() {
   const [view, setView] = React.useState("mode-select");
@@ -116,26 +84,16 @@ export default function App() {
     setIsXNext((current) => !current);
   }
 
+  function recordRoundResult(winnerSymbol) {
+    setHistory((current) => getUpdatedHistory(current, winnerSymbol));
+    setScore((current) => getUpdatedScore(current, winnerSymbol));
+  }
+
   function handleNewRound() {
     const winnerSymbol = result?.winner ?? null;
+    recordRoundResult(winnerSymbol);
 
-    setHistory((current) => [
-      ...current,
-      {
-        round: current.length + 1,
-        winnerSymbol,
-      },
-    ]);
-
-    if (winnerSymbol === "X") {
-      setScore((current) => ({ ...current, X: current.X + 1 }));
-    } else if (winnerSymbol === "O") {
-      setScore((current) => ({ ...current, O: current.O + 1 }));
-    } else {
-      setScore((current) => ({ ...current, draws: current.draws + 1 }));
-    }
-
-    const nextStartingSymbol = startingSymbol === "X" ? "O" : "X";
+    const nextStartingSymbol = getNextStartingSymbol(startingSymbol);
     setStartingSymbol(nextStartingSymbol);
     setBoard(emptyBoard);
     setIsXNext(nextStartingSymbol === "X");
@@ -144,21 +102,7 @@ export default function App() {
   function handleFinalize() {
     if (isRoundFinished) {
       const winnerSymbol = result?.winner ?? null;
-      setHistory((current) => [
-        ...current,
-        {
-          round: current.length + 1,
-          winnerSymbol,
-        },
-      ]);
-
-      if (winnerSymbol === "X") {
-        setScore((current) => ({ ...current, X: current.X + 1 }));
-      } else if (winnerSymbol === "O") {
-        setScore((current) => ({ ...current, O: current.O + 1 }));
-      } else {
-        setScore((current) => ({ ...current, draws: current.draws + 1 }));
-      }
+      recordRoundResult(winnerSymbol);
     }
 
     setView("summary");
