@@ -45,6 +45,9 @@ export default function App() {
   const emptyBoard = Array(9).fill(null);
   const [board, setBoard] = React.useState(emptyBoard);
   const [isXNext, setIsXNext] = React.useState(true);
+  const todayLabel = new Intl.DateTimeFormat("es-AR", {
+    dateStyle: "full",
+  }).format(new Date());
 
   const result = calculateWinner(board);
   const isDraw = !result && board.every(Boolean);
@@ -85,6 +88,9 @@ export default function App() {
           <h1 className="text-5xl font-black tracking-tight sm:text-6xl">TaTeTi</h1>
           <p className="mt-3 text-sm leading-6 text-slate-600 sm:text-base">
             Juga una partida rapida en un tablero centrado, simple y agradable.
+          </p>
+          <p className="mt-2 text-xs font-medium capitalize text-slate-500 sm:text-sm">
+            {todayLabel}
           </p>
 
           <div
