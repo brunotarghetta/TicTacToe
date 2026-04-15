@@ -1,3 +1,5 @@
+import React from "react";
+
 function Square({ value, onClick, isHighlighted }) {
   return (
     <button

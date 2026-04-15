@@ -22,6 +22,29 @@ test("starts a multiplayer game with custom player names", async ({ page }) => {
   await expect(page.getByText("Turno de Ana")).toBeVisible();
 });
 
+test("opens the preloaded users modal and uses the selected name in multiplayer", async ({ page }) => {
+  await page.goto("/");
+
+  await page.getByRole("button", { name: "Partida multiple" }).click();
+  await page.getByRole("button", { name: "Buscar usuario precargado para Jugador 1" }).click();
+
+  await expect(page.getByRole("heading", { name: "Seleccionar usuario" })).toBeVisible();
+  await page.getByRole("button", { name: "LunaVega" }).click();
+
+  await expect(page.getByRole("textbox", { name: "Nombre Jugador 1 (X)" })).toHaveValue("LunaVega");
+
+  await page.getByRole("button", { name: "Buscar usuario precargado para Jugador 2" }).click();
+  await expect(page.getByRole("button", { name: "LunaVega" })).toHaveCount(0);
+  await page.getByRole("button", { name: "TomiRios" }).click();
+
+  await expect(page.getByRole("textbox", { name: "Nombre Jugador 2 (O)" })).toHaveValue("TomiRios");
+
+  await page.getByRole("button", { name: "Comenzar" }).click();
+
+  await expect(page.getByText("LunaVega (X) vs TomiRios (O)")).toBeVisible();
+  await expect(page.getByText("Turno de LunaVega")).toBeVisible();
+});
+
 test("finishes a round and shows the summary screen", async ({ page }) => {
   await page.goto("/");
 

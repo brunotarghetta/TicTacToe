@@ -1,3 +1,5 @@
+import React from "react";
+
 export default function LandingComponent({ todayLabel, onQuickGame, onMultiGame }) {
   return (
     <main className="relative min-h-screen overflow-hidden bg-[linear-gradient(160deg,#f6efe6_0%,#d8e8f2_100%)] px-6 py-10 text-slate-900">
