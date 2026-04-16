@@ -1,6 +1,8 @@
 import React from "react";
 import { getPreloadedUsers } from "../api/users";
 
+const USERS_PER_PAGE = 10;
+
 export default function MultiplayerSetupComponent({
   nameInputs,
   onCancel,
@@ -9,6 +11,7 @@ export default function MultiplayerSetupComponent({
 }) {
   const [activePlayerField, setActivePlayerField] = React.useState(null);
   const [searchTerm, setSearchTerm] = React.useState("");
+  const [currentPage, setCurrentPage] = React.useState(1);
   const preloadedUsers = getPreloadedUsers();
   const excludedUser =
     activePlayerField === "playerOne" ? nameInputs.playerTwo : nameInputs.playerOne;
@@ -16,15 +19,22 @@ export default function MultiplayerSetupComponent({
   const filteredUsers = preloadedUsers.filter((user) =>
     user !== excludedUser && user.toLowerCase().includes(searchTerm.trim().toLowerCase())
   );
+  const totalPages = Math.max(1, Math.ceil(filteredUsers.length / USERS_PER_PAGE));
+  const paginatedUsers = filteredUsers.slice(
+    (currentPage - 1) * USERS_PER_PAGE,
+    currentPage * USERS_PER_PAGE
+  );
 
   function openUserModal(field) {
     setActivePlayerField(field);
     setSearchTerm("");
+    setCurrentPage(1);
   }
 
   function closeUserModal() {
     setActivePlayerField(null);
     setSearchTerm("");
+    setCurrentPage(1);
   }
 
   function selectUser(userName) {
@@ -53,7 +63,7 @@ export default function MultiplayerSetupComponent({
           <div className="mt-6 grid gap-4 text-left">
             <label className="text-sm font-semibold text-slate-700">
               Nombre Jugador 1 (X)
-              <div className="mt-2 flex gap-2">
+              <div className="mt-2 flex items-center gap-2">
                 <input
                   className="w-full rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm shadow-sm outline-none focus:border-amber-600 focus:ring-2 focus:ring-amber-500/30"
                   onChange={(event) => onNameChange("playerOne", event.target.value)}
@@ -63,7 +73,7 @@ export default function MultiplayerSetupComponent({
                 />
                 <button
                   aria-label="Buscar usuario precargado para Jugador 1"
-                  className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-slate-300 bg-slate-100 text-lg font-black text-slate-700 shadow-sm transition hover:bg-slate-200 focus:outline-none focus-visible:ring-4 focus-visible:ring-slate-900/20"
+                  className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-slate-300 bg-slate-100 text-lg font-black text-slate-700 shadow-sm transition hover:bg-slate-200 focus:outline-none focus-visible:ring-4 focus-visible:ring-slate-900/20"
                   onClick={() => openUserModal("playerOne")}
                   type="button"
                 >
@@ -74,7 +84,7 @@ export default function MultiplayerSetupComponent({
 
             <label className="text-sm font-semibold text-slate-700">
               Nombre Jugador 2 (O)
-              <div className="mt-2 flex gap-2">
+              <div className="mt-2 flex items-center gap-2">
                 <input
                   className="w-full rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm shadow-sm outline-none focus:border-amber-600 focus:ring-2 focus:ring-amber-500/30"
                   onChange={(event) => onNameChange("playerTwo", event.target.value)}
@@ -84,7 +94,7 @@ export default function MultiplayerSetupComponent({
                 />
                 <button
                   aria-label="Buscar usuario precargado para Jugador 2"
-                  className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-slate-300 bg-slate-100 text-lg font-black text-slate-700 shadow-sm transition hover:bg-slate-200 focus:outline-none focus-visible:ring-4 focus-visible:ring-slate-900/20"
+                  className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-slate-300 bg-slate-100 text-lg font-black text-slate-700 shadow-sm transition hover:bg-slate-200 focus:outline-none focus-visible:ring-4 focus-visible:ring-slate-900/20"
                   onClick={() => openUserModal("playerTwo")}
                   type="button"
                 >
@@ -138,17 +148,30 @@ export default function MultiplayerSetupComponent({
             <input
               autoFocus
               className="mt-5 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm shadow-sm outline-none focus:border-amber-600 focus:ring-2 focus:ring-amber-500/30"
-              onChange={(event) => setSearchTerm(event.target.value)}
+              onChange={(event) => {
+                setSearchTerm(event.target.value);
+                setCurrentPage(1);
+              }}
               placeholder="Buscar usuario precargado"
               type="text"
               value={searchTerm}
             />
 
-            <div className="mt-5 grid max-h-72 grid-cols-2 gap-3 overflow-y-auto pr-1 sm:grid-cols-3">
-              {filteredUsers.length > 0 ? (
-                filteredUsers.map((user) => (
+            <div className="mt-4 flex items-center justify-between gap-3 text-sm text-slate-600">
+              <p aria-live="polite">
+                Pagina {currentPage} de {totalPages}
+              </p>
+              <p>
+                {filteredUsers.length} usuarios disponibles
+              </p>
+            </div>
+
+            <div className="mt-5 grid min-h-72 max-h-72 content-start grid-cols-2 gap-3 overflow-y-auto pr-1 sm:grid-cols-3">
+              {paginatedUsers.length > 0 ? (
+                paginatedUsers.map((user) => (
                   <button
-                    className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4 text-left text-sm font-semibold text-slate-700 transition hover:-translate-y-0.5 hover:border-amber-400 hover:bg-amber-50 hover:text-amber-900 focus:outline-none focus-visible:ring-4 focus-visible:ring-amber-500/25"
+                    aria-label={`Seleccionar ${user}`}
+                    className="self-start rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4 text-left text-sm font-semibold text-slate-700 transition hover:-translate-y-0.5 hover:border-amber-400 hover:bg-amber-50 hover:text-amber-900 focus:outline-none focus-visible:ring-4 focus-visible:ring-amber-500/25"
                     key={user}
                     onClick={() => selectUser(user)}
                     type="button"
@@ -161,6 +184,45 @@ export default function MultiplayerSetupComponent({
                   No hay usuarios que coincidan con la busqueda.
                 </div>
               )}
+            </div>
+
+            <div className="mt-5 flex flex-wrap items-center justify-end gap-2">
+              <button
+                aria-label="Ir al principio"
+                className="rounded-full bg-slate-200 px-4 py-2 text-sm font-bold text-slate-700 transition hover:bg-slate-300 disabled:cursor-not-allowed disabled:opacity-50"
+                disabled={currentPage === 1}
+                onClick={() => setCurrentPage(1)}
+                type="button"
+              >
+                {"<<"}
+              </button>
+              <button
+                aria-label="Ir a la pagina anterior"
+                className="rounded-full bg-slate-200 px-4 py-2 text-sm font-bold text-slate-700 transition hover:bg-slate-300 disabled:cursor-not-allowed disabled:opacity-50"
+                disabled={currentPage === 1}
+                onClick={() => setCurrentPage((page) => Math.max(1, page - 1))}
+                type="button"
+              >
+                {"<"}
+              </button>
+              <button
+                aria-label="Ir a la pagina siguiente"
+                className="rounded-full bg-slate-800 px-4 py-2 text-sm font-bold text-slate-50 transition hover:bg-slate-900 disabled:cursor-not-allowed disabled:opacity-50"
+                disabled={currentPage === totalPages}
+                onClick={() => setCurrentPage((page) => Math.min(totalPages, page + 1))}
+                type="button"
+              >
+                {">"}
+              </button>
+              <button
+                aria-label="Ir al final"
+                className="rounded-full bg-slate-800 px-4 py-2 text-sm font-bold text-slate-50 transition hover:bg-slate-900 disabled:cursor-not-allowed disabled:opacity-50"
+                disabled={currentPage === totalPages}
+                onClick={() => setCurrentPage(totalPages)}
+                type="button"
+              >
+                {">>"}
+              </button>
             </div>
           </div>
         </div>

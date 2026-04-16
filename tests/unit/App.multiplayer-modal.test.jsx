@@ -18,6 +18,12 @@ function getButtonByLabel(container, label) {
   return container.querySelector(`button[aria-label="${label}"]`);
 }
 
+function getButtonsByLabelPrefix(container, prefix) {
+  return Array.from(container.querySelectorAll("button")).filter((button) =>
+    button.getAttribute("aria-label")?.startsWith(prefix)
+  );
+}
+
 function getTextboxByLabel(container, labelText) {
   return Array.from(container.querySelectorAll("label")).find((label) =>
     label.textContent.includes(labelText)
@@ -97,5 +103,64 @@ describe("App multiplayer modal", () => {
 
     expect(container.textContent).toContain("LunaVega (X) vs TomiRios (O)");
     expect(container.textContent).toContain("Turno de LunaVega");
+  });
+
+  it("paginates preloaded users and keeps 10 names per page in the modal", () => {
+    container = document.createElement("div");
+    document.body.appendChild(container);
+    root = ReactDOM.createRoot(container);
+
+    act(() => {
+      root.render(<App />);
+    });
+
+    act(() => {
+      click(getButtonByText(container, "Partida multiple"));
+    });
+
+    act(() => {
+      click(getButtonByLabel(container, "Buscar usuario precargado para Jugador 1"));
+    });
+
+    expect(container.textContent).toContain("Pagina 1 de 5");
+    expect(container.textContent).toContain("50 usuarios disponibles");
+    expect(getButtonsByLabelPrefix(container, "Seleccionar ")).toHaveLength(10);
+    expect(getButtonByLabel(container, "Seleccionar LunaVega")).toBeTruthy();
+    expect(getButtonByLabel(container, "Seleccionar MateoFlux")).toBeTruthy();
+
+    act(() => {
+      click(getButtonByLabel(container, "Ir a la pagina siguiente"));
+    });
+
+    expect(container.textContent).toContain("Pagina 2 de 5");
+    expect(getButtonsByLabelPrefix(container, "Seleccionar ")).toHaveLength(10);
+    expect(getButtonByLabel(container, "Seleccionar EmmaStone")).toBeTruthy();
+    expect(getButtonByLabel(container, "Seleccionar HugoDash")).toBeTruthy();
+
+    act(() => {
+      click(getButtonByLabel(container, "Ir al final"));
+    });
+
+    expect(container.textContent).toContain("Pagina 5 de 5");
+    expect(getButtonsByLabelPrefix(container, "Seleccionar ")).toHaveLength(10);
+    expect(getButtonByLabel(container, "Seleccionar KevinFlash")).toBeTruthy();
+    expect(getButtonByLabel(container, "Seleccionar LuciaFrame")).toBeTruthy();
+
+    act(() => {
+      click(getButtonByLabel(container, "Ir a la pagina anterior"));
+    });
+
+    expect(container.textContent).toContain("Pagina 4 de 5");
+    expect(getButtonsByLabelPrefix(container, "Seleccionar ")).toHaveLength(10);
+    expect(getButtonByLabel(container, "Seleccionar WalterNode")).toBeTruthy();
+    expect(getButtonByLabel(container, "Seleccionar BiancaGlow")).toBeTruthy();
+
+    act(() => {
+      click(getButtonByLabel(container, "Ir al principio"));
+    });
+
+    expect(container.textContent).toContain("Pagina 1 de 5");
+    expect(getButtonsByLabelPrefix(container, "Seleccionar ")).toHaveLength(10);
+    expect(getButtonByLabel(container, "Seleccionar LunaVega")).toBeTruthy();
   });
 });
